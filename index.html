@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aprovação, Vendas e Recebimentos</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <span class="eyebrow">CONTROLE INTERNO</span>
+      <h1><span class="bike-mark">🚲</span> Aprovação, Vendas e Recebimentos</h1>
+      <p>Separe a análise da aprovação da venda efetivamente fechada.</p>
+    </div>
+    <button class="btn secondary top-action" id="btnExportar">↓ Exportar backup</button>
+  </header>
+
+  <main class="container">
+    <section class="notice">
+      <strong>Aviso:</strong> este sistema é apenas para controle interno e simulação. Ele não consulta CPF, Serasa, banco ou financeira.
+    </section>
+
+    <section class="stats" id="stats"></section>
+
+    <nav class="tabs">
+      <button class="tab active" data-tab="aprovacao">1. Aprovação</button>
+      <button class="tab" data-tab="venda">2. Fazer venda</button>
+      <button class="tab" data-tab="aprovados">Aprovados</button>
+      <button class="tab" data-tab="vendas">Vendas</button>
+      <button class="tab" data-tab="montagem">Bicicleta para montagem</button>
+      <button class="tab" data-tab="mensal">Previsão mensal</button>
+      <button class="tab" data-tab="historico">Histórico recebido</button>
+      <button class="tab" data-tab="configuracoes">⚙ Configurações</button>
+    </nav>
+
+    <section class="panel active" id="tab-aprovacao">
+      <div class="card">
+        <div class="step-title"><span>1</span><div><h2>Simulação de aprovação</h2><p class="muted">Aqui você decide manualmente se o cliente foi aprovado. Nenhum valor entra no financeiro nesta etapa.</p></div></div>
+        <form id="aprovacaoForm">
+          <div class="grid">
+            <div class="field full"><label for="aNome">Nome completo</label><input type="text" id="aNome" required placeholder="Nome do cliente" /></div>
+            <div class="field"><label for="aCpf">CPF</label><input type="text" id="aCpf" maxlength="14" required placeholder="000.000.000-00" /></div>
+            <div class="field"><label for="aVendedor">Nome do vendedor</label><select id="aVendedor" required><option value="">Selecione um vendedor...</option></select></div>
+            <div class="field"><label for="aBicicletas">Bicicletas aprovadas</label><input type="number" id="aBicicletas" min="1" value="1" required /></div>
+            <div class="field"><label for="aEntrada">Entrada aprovada</label><input type="text" id="aEntrada" inputmode="decimal" required placeholder="R$ 350,00" /></div>
+            <div class="field"><label for="aParcelas">Quantidade de parcelas</label><input type="number" id="aParcelas" min="1" max="120" required placeholder="Ex.: 3" /></div>
+            <div class="field"><label for="aValorParcela">Valor da parcela</label><input type="text" id="aValorParcela" inputmode="decimal" required placeholder="R$ 260,00" /></div>
+          </div>
+
+          <div class="decision">
+            <h3>Resultado da aprovação</h3>
+            <div class="decision-buttons">
+              <button type="button" class="btn approve" id="btnAprovar">✓ Aprovar cliente</button>
+              <button type="button" class="btn reject" id="btnReprovar">✕ Reprovar cliente</button>
+            </div>
+            <input type="hidden" id="statusEscolhido" />
+          </div>
+
+          <div class="actions"><button type="submit" class="btn primary">Salvar resultado</button><button type="button" class="btn secondary" id="btnLimparAprovacao">Limpar</button></div>
+        </form>
+      </div>
+      <div class="card result-card hidden" id="resultadoAprovacao">
+        <div class="result-glow result-glow-one"></div>
+        <div class="result-glow result-glow-two"></div>
+        <div class="result-status" id="resultStatus"></div>
+        <div class="result-grid" id="resultGrid"></div>
+        <div class="result-footer">
+          <div class="result-footer-note"><span class="result-footer-icon">✓</span><div><strong>Resultado registrado</strong><small>Os dados acima correspondem à simulação salva no sistema.</small></div></div>
+          <button class="btn result-print" onclick="window.print()"><span>▣</span> Imprimir / Salvar PDF</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" id="tab-venda">
+      <div class="card">
+        <div class="step-title"><span>2</span><div><h2>Registrar venda</h2><p class="muted">Escolha um cliente aprovado. A entrada só será contabilizada depois de confirmar a venda.</p></div></div>
+        <form id="vendaForm">
+          <div class="grid">
+            <div class="field full"><label for="vCliente">Cliente aprovado</label><select id="vCliente" required><option value="">Selecione um cliente aprovado...</option></select></div>
+            <div class="field"><label for="vNome">Nome do cliente</label><input type="text" id="vNome" readonly /></div>
+            <div class="field"><label for="vCpf">CPF</label><input type="text" id="vCpf" readonly /></div>
+            <div class="field"><label for="vTelefone">Telefone</label><input type="tel" id="vTelefone" placeholder="(12) 99999-9999" /></div>
+            <div class="field"><label for="vEndereco">Endereço</label><input type="text" id="vEndereco" placeholder="Rua, número, bairro e cidade" /></div>
+            <div class="field full">
+              <label>Forma de recebimento</label>
+              <div class="choice-row">
+                <label class="choice-card"><input type="radio" name="vTipoEntrega" value="Retirada" required /><span>Retirada</span></label>
+                <label class="choice-card"><input type="radio" name="vTipoEntrega" value="Entrega" required /><span>Entrega</span></label>
+              </div>
+            </div>
+            <div class="field full"><label for="vVendedor">Nome do vendedor</label><select id="vVendedor" required><option value="">Selecione um vendedor...</option></select></div>
+            <div class="field full">
+              <label>Bicicletas da venda</label>
+              <div id="vBikesContainer" class="sale-bikes"></div>
+              <button type="button" class="btn secondary add-bike-btn" id="btnAdicionarBike">＋ Adicionar outra bicicleta</button>
+              <input type="hidden" id="vBicicletas" value="1" />
+              <small class="muted">Cada bicicleta pode ter especificação, marca, cor e numeração diferentes.</small>
+            </div>
+            <div class="field"><label for="vEntrada">Valor da entrada</label><input type="text" id="vEntrada" inputmode="decimal" required /></div>
+            <div class="field"><label for="vParcelas">Quantidade de parcelas</label><input type="number" id="vParcelas" min="1" max="120" required /></div>
+            <div class="field"><label for="vValorParcela">Valor da parcela</label><input type="text" id="vValorParcela" inputmode="decimal" required /></div>
+            <div class="field"><label for="vPrimeiraParcela">Data da 1ª parcela</label><input type="date" id="vPrimeiraParcela" required /></div>
+            <div class="field full"><label for="vObservacao">Observação da venda</label><textarea id="vObservacao" rows="4" placeholder="Ex.: cor da bicicleta, modelo, combinado com o cliente, informação da entrega..."></textarea></div>
+          </div>
+          <div class="sale-summary" id="saleSummary">Selecione um cliente aprovado para iniciar a venda.</div>
+          <div class="actions"><button type="submit" class="btn success big">✓ Confirmar venda</button><button type="button" class="btn secondary" id="btnLimparVenda">Limpar</button></div>
+        </form>
+      </div>
+
+      <div class="card sale-result hidden" id="resultadoVenda">
+        <div class="sale-result-head">
+          <div class="sale-check">✓</div>
+          <div><span class="badge ok">VENDA FINALIZADA</span><h2>Venda registrada com sucesso</h2><p class="muted">Confira os dados abaixo. Você pode imprimir esta finalização ou salvar em PDF.</p></div>
+        </div>
+        <div class="sale-result-grid" id="saleResultGrid"></div>
+        <div class="actions center">
+          <button type="button" class="btn primary big" id="btnImprimirVenda">▣ Imprimir / Salvar PDF</button>
+          <button type="button" class="btn secondary" id="btnIrVendas">Ver vendas</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" id="tab-aprovados">
+      <div class="card"><div class="section-head"><div><h2>Clientes aprovados</h2><p class="muted">Aprovados que ainda podem ser transformados em venda.</p></div><input class="search" id="buscaAprovado" placeholder="Buscar nome, CPF ou vendedor" /></div>
+        <div class="table-wrap"><table><thead><tr><th>Cliente</th><th>Vendedor</th><th>Aprovação</th><th>Condição aprovada</th><th>Status</th><th>Ações</th></tr></thead><tbody id="aprovadosBody"></tbody></table></div>
+      </div>
+    </section>
+
+    <section class="panel" id="tab-vendas">
+      <div class="card"><div class="section-head"><div><h2>Vendas realizadas</h2><p class="muted">Somente vendas confirmadas aparecem no financeiro.</p></div><input class="search" id="buscaVenda" placeholder="Buscar nome, CPF ou vendedor" /></div>
+        <div class="table-wrap"><table><thead><tr><th>Cliente</th><th>Vendedor</th><th>Entrada</th><th>Plano</th><th>Próxima parcela</th><th>Recebido</th><th>Falta</th><th>Status</th><th>Ações</th></tr></thead><tbody id="vendasBody"></tbody></table></div>
+      </div>
+    </section>
+
+
+    <section class="panel" id="tab-montagem">
+      <div class="card montagem-card">
+        <div class="step-title"><span>🚲</span><div><h2>Bicicleta para montagem</h2><p class="muted">Crie uma ficha de montagem com os dados do cliente e do quadro. Depois você pode imprimir ou salvar em PDF.</p></div></div>
+        <form id="montagemForm">
+          <div class="grid">
+            <div class="field full"><label for="mNome">Nome do cliente</label><input type="text" id="mNome" required placeholder="Nome completo do cliente" /></div>
+            <div class="field"><label for="mDataEntrega">Data de entrega</label><input type="date" id="mDataEntrega" required /></div>
+            <div class="field"><label>Forma de recebimento</label><div class="choice-row"><label class="choice-card"><input type="radio" name="mTipoEntrega" value="Retirada" required><span>Retirada</span></label><label class="choice-card"><input type="radio" name="mTipoEntrega" value="Entrega" required><span>Entrega</span></label></div></div>
+            <div class="field full"><label for="mEspecificacao">Especificação do quadro</label><input type="text" id="mEspecificacao" required placeholder="Ex.: Quadro 29 Alfameq alumínio" /></div>
+            <div class="field"><label for="mCor">Cor do quadro</label><input type="text" id="mCor" required placeholder="Ex.: Preto com laranja" /></div>
+            <div class="field"><label for="mMarca">Marca</label><select id="mMarca" required><option value="">Selecione uma marca...</option></select></div>
+            <div class="field"><label for="mNumeracao">Numeração / altura</label><select id="mNumeracao" required><option value="">Selecione uma numeração...</option></select></div>
+            <div class="field"><label for="mQuantidade">Quantidade</label><input type="number" id="mQuantidade" min="1" value="1" required /></div>
+          </div>
+          <div class="actions"><button type="submit" class="btn success big">✓ Criar ficha de montagem</button><button type="button" class="btn secondary" id="btnLimparMontagem">Limpar</button></div>
+        </form>
+      </div>
+
+      <div class="card montagem-result hidden" id="resultadoMontagem">
+        <div class="montagem-result-head"><span class="badge ok">BICICLETA PARA MONTAGEM</span><h2>Ficha de montagem</h2><p class="muted">Confira os dados antes de imprimir.</p></div>
+        <div class="montagem-grid" id="montagemResultGrid"></div>
+        <div class="actions center"><button type="button" class="btn primary big" id="btnImprimirMontagem">▣ Imprimir / Salvar PDF</button></div>
+      </div>
+
+      <div class="card">
+        <div class="section-head"><div><h2>Fichas de montagem salvas</h2><p class="muted">Use para consultar ou imprimir novamente uma ficha.</p></div></div>
+        <div class="table-wrap"><table><thead><tr><th>Cliente</th><th>Entrega</th><th>Tipo</th><th>Quadro</th><th>Numeração</th><th>Qtd.</th><th>Ações</th></tr></thead><tbody id="montagensBody"></tbody></table></div>
+      </div>
+    </section>
+
+    <section class="panel" id="tab-mensal">
+      <div class="card"><h2>Previsão de parcelas por mês</h2><p class="muted">Cada venda aparece somente durante os meses em que ainda existem parcelas programadas.</p><div class="table-wrap"><table><thead><tr><th>Mês</th><th>Parcelas previstas</th><th>Quantidade</th><th>Clientes ativos</th></tr></thead><tbody id="mensalBody"></tbody></table></div></div>
+    </section>
+
+    <section class="panel" id="tab-historico">
+      <div class="card"><h2>Histórico de recebimentos</h2><p class="muted">O total de entradas “de hoje” muda automaticamente ao virar o dia, mas o histórico nunca é apagado.</p><div class="table-wrap"><table><thead><tr><th>Data</th><th>Cliente</th><th>Vendedor</th><th>Tipo</th><th>Valor</th><th>Detalhes</th><th>Ações</th></tr></thead><tbody id="historicoBody"></tbody></table></div></div>
+    </section>
+
+    <section class="panel" id="tab-configuracoes">
+      <div class="card config-hero">
+        <div class="step-title"><span>⚙</span><div><h2>Configurações do painel</h2><p class="muted">Cadastre aqui as opções usadas nos formulários. Ao adicionar ou excluir uma opção, os campos do sistema são atualizados automaticamente.</p></div></div>
+      </div>
+
+      <div class="config-grid">
+        <div class="card config-card">
+          <div class="config-head"><div class="config-icon">👤</div><div><h3>Vendedores</h3><p>Usados na Aprovação e em Registrar venda.</p></div></div>
+          <form class="config-add" id="formAddVendedor"><input type="text" id="cfgVendedor" placeholder="Nome do vendedor" required><button class="btn primary" type="submit">+ Adicionar</button></form>
+          <div class="config-list" id="listaVendedores"></div>
+        </div>
+
+        <div class="card config-card">
+          <div class="config-head"><div class="config-icon">🚲</div><div><h3>Marcas de quadro</h3><p>Usadas em Registrar venda e Bicicleta para montagem.</p></div></div>
+          <form class="config-add" id="formAddMarca"><input type="text" id="cfgMarca" placeholder="Ex.: Alfameq" required><button class="btn primary" type="submit">+ Adicionar</button></form>
+          <div class="config-list" id="listaMarcas"></div>
+        </div>
+
+        <div class="card config-card">
+          <div class="config-head"><div class="config-icon">🧾</div><div><h3>Especificações do quadro</h3><p>Usadas em Registrar venda.</p></div></div>
+          <form class="config-add" id="formAddEspecificacao"><input type="text" id="cfgEspecificacao" placeholder="Ex.: Bicicleta Aro 29 Alumínio" required><button class="btn primary" type="submit">+ Adicionar</button></form>
+          <div class="config-list" id="listaEspecificacoes"></div>
+        </div>
+
+        <div class="card config-card">
+          <div class="config-head"><div class="config-icon">↕</div><div><h3>Numerações / alturas</h3><p>Usadas em Registrar venda e Bicicleta para montagem.</p></div></div>
+          <form class="config-add" id="formAddNumeracao"><input type="text" id="cfgNumeracao" placeholder="Ex.: 15, 17, 19, 21" required><button class="btn primary" type="submit">+ Adicionar</button></form>
+          <div class="config-list" id="listaNumeracoes"></div>
+        </div>
+      </div>
+
+      <div class="card finance-adjust-card">
+        <div class="config-head"><div class="config-icon">💰</div><div><h3>Ajustes financeiros</h3><p>Use esta área para corrigir valores de testes ou lançamentos que não devem mais contar nos totais.</p></div></div>
+        <div class="finance-adjust-actions">
+          <button type="button" class="btn secondary" id="btnRecalcularPainel">↻ Recalcular painel</button>
+          <button type="button" class="btn danger" id="btnLimparOrfaos">Remover recebimentos de vendas excluídas</button>
+        </div>
+        <p class="muted finance-adjust-note">Você também pode abrir <strong>Histórico recebido</strong> e excluir somente um lançamento específico. Ao excluir uma parcela recebida, ela volta a ficar pendente na venda.</p>
+      </div>
+
+      <div class="card config-tip"><strong>Como funciona:</strong> você cadastra uma opção uma vez aqui. Depois ela aparece automaticamente nas listas de seleção das outras áreas do painel.</div>
+    </section>
+  </main>
+
+  <div class="modal hidden" id="modalPagamento"><div class="modal-card"><h3>Registrar parcela recebida</h3><p id="pagamentoInfo" class="muted"></p><div class="field"><label for="dataPagamento">Data do recebimento</label><input type="date" id="dataPagamento" /></div><div class="actions"><button class="btn primary" id="confirmarPagamento">Confirmar recebimento</button><button class="btn secondary" id="cancelarPagamento">Cancelar</button></div></div></div>
+
+  <script src="script.js"></script>
+</body>
+</html>
